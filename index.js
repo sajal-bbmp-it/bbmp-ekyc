@@ -1,3 +1,5 @@
-import useEKYC from './src/Hooks/useEKYC';
+import useEKYC from './src/useKYC';
+import EKYCForm from './src/EKYCForm';
+import { validateEKYCConfig } from './src/utils';
 
-export default useEKYC;
+export { useEKYC, EKYCForm,validateEKYCConfig };
