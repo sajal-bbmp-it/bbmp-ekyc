@@ -9,20 +9,41 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { useNavigation } from '@react-navigation/native';
+import { WebView,WebViewMessageEvent } from 'react-native-webview';
+import { useNavigation,NavigationProp } from '@react-navigation/native';
+import { RouteProp } from '@react-navigation/native';
 
-const EKYCForm = ({ route }) => {
+type AadhaarResult = {
+  verify: boolean;
+  name: string;
+  localName: string;
+  aadhaarNo: string;
+  txnNo: string;
+  vaultRefNo: string;
+};
+type EKYCParams = {
+  htmlContent: string;
+  loader: boolean;
+  remoteUrl: string;
+  encDecValue: string;
+};
+type EKYCFormProps = {
+  route: RouteProp<{ params: EKYCParams }, 'params'>;
+};
+
+const EKYCForm : React.FC<EKYCFormProps> = ({ route }) => {
+
+  const webViewRef = useRef<WebView>(null);
+  const navigation = useNavigation<NavigationProp<any>>();
   const { htmlContent, loader, remoteUrl, encDecValue } = route.params || {};
 
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
-  const [result, setResult] = useState(null);
-  console.log(result, "EKYCForm Props");
-  const webViewRef = useRef(null);
-  const navigation = useNavigation();
+  const [result, setResult] = useState<AadhaarResult | null>(null);
+ 
 
-const injectedJavaScript = `
+
+  const injectedJavaScript = `
   (function() {
     function sendMessage(type, content) {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type, content }));
@@ -30,63 +51,55 @@ const injectedJavaScript = `
 
     sendMessage('debug', 'React Native injectedJavaScript started.');
 
-    // Function to attempt to retrieve data from hidden fields
     function attemptGetDataFromHiddenFields() {
-        try {
-            var RS_AadhaarDetails = document.getElementById("HiddenField1") ? document.getElementById("HiddenField1").value : null;
-            var RS_StatusDetails = document.getElementById("HiddenField2") ? document.getElementById("HiddenField2").value : null;
+      try {
+        var RS_AadhaarDetails = document.getElementById("HiddenField1")?.value || null;
+        var RS_StatusDetails = document.getElementById("HiddenField2")?.value || null;
 
-            if (RS_AadhaarDetails && RS_StatusDetails) {
-                var combinedData = RS_AadhaarDetails + "|" + RS_StatusDetails;
-                sendMessage('debug', 'Hidden fields found, sending combined data: ' + combinedData);
-                sendMessage('aadhaar_data_ready', combinedData); // Send to React Native
-                return true; // Data found and sent
-            } else {
-                sendMessage('debug', 'Hidden fields not found yet.');
-                return false; // Not found
-            }
-        } catch (e) {
-            sendMessage('error', 'Error in scraping hidden fields: ' + e.message);
-            return false;
+        if (RS_AadhaarDetails && RS_StatusDetails) {
+          var combinedData = RS_AadhaarDetails + "|" + RS_StatusDetails;
+          sendMessage('debug', 'Hidden fields found, sending combined data: ' + combinedData);
+          sendMessage('aadhaar_data_ready', combinedData);
+          return true;
+        } else {
+          sendMessage('debug', 'Hidden fields not found yet.');
+          return false;
         }
+      } catch (e) {
+        sendMessage('error', 'Error in scraping hidden fields: ' + e.message);
+        return false;
+      }
     }
-
-    // Use a MutationObserver or a polling interval to wait for the hidden fields to appear
-    // The web page uses window.onload, which means fields might be available immediately.
-    // However, if the page loads dynamically, MutationObserver is safer.
 
     let dataFound = false;
+
     const observer = new MutationObserver((mutationsList, observerInstance) => {
-        if (!dataFound) {
-            dataFound = attemptGetDataFromHiddenFields();
-            if (dataFound) {
-                observerInstance.disconnect(); // Stop observing once data is found
-                sendMessage('debug', 'Observer disconnected after data found.');
-            }
+      if (!dataFound) {
+        dataFound = attemptGetDataFromHiddenFields();
+        if (dataFound) {
+          observerInstance.disconnect();
+          sendMessage('debug', 'Observer disconnected after data found.');
         }
+      }
     });
 
-    // Start observing the body for changes
     observer.observe(document.body, { childList: true, subtree: true, attributes: true });
 
-    // Also attempt immediately on script injection (in case data is there very quickly)
     if (!attemptGetDataFromHiddenFields()) {
-        // Set a timeout to disconnect after a certain period if data isn't found
-        setTimeout(() => {
-            if (!dataFound) {
-                sendMessage('debug', 'Timeout reached, data not found, observer disconnecting.');
-                observer.disconnect();
-            }
-        }, 10000); // Wait up to 10 seconds
+      setTimeout(() => {
+        if (!dataFound) {
+          sendMessage('debug', 'Timeout reached, data not found, observer disconnecting.');
+          observer.disconnect();
+        }
+      }, 10000);
     }
-    // No window.onload here, as this is injected after page load.
-    // It's assumed the React Native WebView loads the HTML, then injects this.
   })();
   true;
 `;
 
 
-const onMessage = (event) => {
+
+const onMessage = (event: WebViewMessageEvent)  => {
   const rawData = event.nativeEvent.data;
   console.log("Message from WebView (Raw):", rawData);
 

@@ -2,12 +2,28 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
-import { validateEKYCConfig } from './utils';
+import { EKYCConfig } from './types'
 
 
+// javascript
 
+// const DEFAULT_OPTIONS = {
+//     deptCode: '',
+//     integrationKey: '',
+//     integrationPassword: '',
+//     appGuid: '',
+//     applicationId: '',
+//     userId: '',
+//     responseRedirectURL: '',
+//     applicationRedirectURL: '',
+//     ENCRYPT_RESPONSE_URL:'',
+//     REMOTE_URL:'',
+//     encDecType:'',
 
-const DEFAULT_OPTIONS = {
+// };
+
+// typeScript
+const DEFAULT_OPTIONS: Required<EKYCConfig> = {
     deptCode: '',
     integrationKey: '',
     integrationPassword: '',
@@ -16,27 +32,26 @@ const DEFAULT_OPTIONS = {
     userId: '',
     responseRedirectURL: '',
     applicationRedirectURL: '',
-    ENCRYPT_RESPONSE_URL:'',
-    REMOTE_URL:'',
-    encDecType:'',
-
+    ENCRYPT_RESPONSE_URL: '',
+    REMOTE_URL: '',
+    encDecType: '',
 };
 
 
 const useEKYC = (userConfig = {}) => {
     const config = { ...DEFAULT_OPTIONS, ...userConfig };
     
-    const validation = validateEKYCConfig(config);
-    if (!validation.valid) {
-        throw new Error(`[useEKYC] ${validation.message}`);
-    }
+    // const validation = validateEKYCConfig(config);
+    // if (!validation.valid) {
+    //     throw new Error(`[useEKYC] ${validation.message}`);
+    // }
 
-    const [htmlContent, setHtmlContent] = useState('');
-    const [encDecValue, setEncDecValue] = useState('');
-    const [loader, setLoader] = useState(false);
-    const [remoteUrl, setRemoteUrl] = useState('');
+    const [htmlContent, setHtmlContent] = useState<string>('');
+    const [encDecValue, setEncDecValue] = useState<string>('');
+    const [loader, setLoader] = useState<boolean>(false);
+    const [remoteUrl, setRemoteUrl] = useState<string>('');
 
-    const handleSubmit = async () => {
+    const handleSubmit = async(): Promise<void> => {
 
         setLoader(true);
         const transactionNumber = uuidv4();
@@ -149,8 +164,9 @@ const useEKYC = (userConfig = {}) => {
             setRemoteUrl(remoteUrl);
             setHtmlContent(html);
         } catch (err) {
-            console.error('Fetch error:', err);
-            Alert.alert('API Error', err.message || 'An unexpected error occurred.');
+            // console.error('Fetch error:', err);
+            // Alert.alert('API Error', err.message || 'An unexpected error occurred.');
+            Alert.alert('API Error', err instanceof Error ? err.message : 'An unexpected error occurred.');
         } finally {
             setLoader(false);
         }
