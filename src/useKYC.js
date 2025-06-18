@@ -17,7 +17,9 @@ const DEFAULT_OPTIONS = {
     responseRedirectURL: '',
     applicationRedirectURL: '',
     ENCRYPT_RESPONSE_URL:'',
-    REMOTE_URL:''
+    REMOTE_URL:'',
+    encDecType:'',
+
 };
 
 
@@ -61,7 +63,7 @@ const useEKYC = (userConfig = {}) => {
                 APPLICATION_REQUEST_ID: transactionNumber,
                 APPLICATION_REDIRECT_URL: config.applicationRedirectURL,
             }),
-            ENC_DEC_TYPE: 'ENC',
+            ENC_DEC_TYPE: config.encDecType,
         };
 
         try {
