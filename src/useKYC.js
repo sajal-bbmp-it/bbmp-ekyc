@@ -16,6 +16,8 @@ const DEFAULT_OPTIONS = {
     userId: '',
     responseRedirectURL: '',
     applicationRedirectURL: '',
+    ENCRYPT_RESPONSE_URL:'',
+    REMOTE_URL:''
 };
 
 
@@ -65,7 +67,7 @@ const useEKYC = (userConfig = {}) => {
         try {
             // Step 1: Encrypt the Aadhaar KYC payload
             const encryptionResponse = await fetch(
-                'https://miraclehealthsystems.com/krstest/api/values/EncryptionDecryption/',
+                config.ENCRYPT_RESPONSE_URL,
                 {
                     method: 'POST',
                     headers: {
@@ -118,8 +120,7 @@ const useEKYC = (userConfig = {}) => {
                 return;
             }
 
-            const remoteUrl =
-                'https://bbmp.karnataka.gov.in/service2/TokenGeneration.aspx';
+            const remoteUrl =config.REMOTE_URL;;
             const html = `
             <html><head><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
             <script>

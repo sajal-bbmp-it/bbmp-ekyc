@@ -7,6 +7,9 @@ const REQUIRED_FIELDS = [
     'userId',
     'responseRedirectURL',
     'applicationRedirectURL',
+    'ENCRYPT_RESPONSE_URL',
+     'REMOTE_URL'
+
   ];
   
   export const validateEKYCConfig = (config = {}) => {
