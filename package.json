@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sajal-bbmp-it/bbmp-ekyc.git"
+    "url": "git+https://github.com/BBMP-IT/bbmp-ekyc"
   },
   "keywords": [
     "bbmpekyc"
@@ -29,9 +29,9 @@
   "author": "BBMP IT",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sajal-bbmp-it/bbmp-ekyc/issues"
+    "url": "https://github.com/BBMP-IT/bbmp-ekyc/issues"
   },
-  "homepage": "https://github.com/sajal-bbmp-it/bbmp-ekyc#readme",
+  "homepage": "https://github.com/BBMP-IT/bbmp-ekyc#readme",
   "peerDependencies": {
     "react": ">=17.0.0",
     "react-native": ">=0.64.0",
