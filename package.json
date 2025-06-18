@@ -17,12 +17,11 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepare": "npm run build",
     "test": "jest"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BBMP-IT/bbmp-ekyc.git"
+    "url": "git+https://github.com/sajal-bbmp-it/bbmp-ekyc.git"
   },
   "keywords": [
     "bbmpekyc"
@@ -30,9 +29,9 @@
   "author": "BBMP IT",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/BBMP-IT/bbmp-ekyc/issues"
+    "url": "https://github.com/sajal-bbmp-it/bbmp-ekyc/issues"
   },
-  "homepage": "https://github.com/BBMP-IT/bbmp-ekyc#readme",
+  "homepage": "https://github.com/sajal-bbmp-it/bbmp-ekyc#readme",
   "peerDependencies": {
     "react": ">=17.0.0",
     "react-native": ">=0.64.0",
@@ -49,4 +48,4 @@
     "@types/uuid": "^10.0.0",
     "typescript": "^5.8.3"
   }
-} 
+}
