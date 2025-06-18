@@ -1,6 +1,6 @@
 {
   "name": "bbmp-ekyc",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A lightweight Node.js package for eKYC processing for BBMP Projects",
   "main": "index.js",
   "scripts": {
@@ -13,7 +13,7 @@
   "keywords": [
     "bbmpekyc"
   ],
-  "author": "Sajal BBMP IT",
+  "author": "BBMP IT",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/sajal-bbmp-it/bbmp-ekyc/issues"
