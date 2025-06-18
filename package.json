@@ -1,9 +1,22 @@
 {
   "name": "bbmp-ekyc",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "A lightweight Node.js package for eKYC processing for BBMP Projects",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
+    "build": "tsc",
     "test": "jest"
   },
   "repository": {
@@ -13,21 +26,26 @@
   "keywords": [
     "bbmpekyc"
   ],
-  "author": "Sajal BBMP IT",
+  "author": "BBMP IT",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/sajal-bbmp-it/bbmp-ekyc/issues"
   },
   "homepage": "https://github.com/sajal-bbmp-it/bbmp-ekyc#readme",
-
- "peerDependencies": {
+  "peerDependencies": {
     "react": ">=17.0.0",
     "react-native": ">=0.64.0",
     "react-native-get-random-values": "^1.11.0",
     "react-native-webview": ">=12.0.0"
   },
-
   "dependencies": {
     "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "@types/react-native": "^0.72.8",
+    "@types/react-native-get-random-values": "^1.8.2",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.8.3"
   }
 }
