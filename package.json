@@ -1,6 +1,6 @@
 {
   "name": "bbmp-ekyc",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A lightweight Node.js package for eKYC processing for BBMP Projects",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
