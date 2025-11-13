@@ -5,6 +5,7 @@ type EKYCParams = {
     loader: boolean;
     remoteUrl: string;
     encDecValue: string;
+    ekycIndex?: number;
 };
 type EKYCFormProps = {
     route: RouteProp<{

@@ -40,7 +40,7 @@ const DEFAULT_OPTIONS: Required<EKYCConfig> = {
 
 const useEKYC = (userConfig = {}) => {
     const config = { ...DEFAULT_OPTIONS, ...userConfig };
-    
+
     // const validation = validateEKYCConfig(config);
     // if (!validation.valid) {
     //     throw new Error(`[useEKYC] ${validation.message}`);
@@ -51,7 +51,7 @@ const useEKYC = (userConfig = {}) => {
     const [loader, setLoader] = useState<boolean>(false);
     const [remoteUrl, setRemoteUrl] = useState<string>('');
 
-    const handleSubmit = async(): Promise<void> => {
+    const handleSubmit = async (): Promise<void> => {
 
         setLoader(true);
         const transactionNumber = uuidv4();
@@ -137,20 +137,20 @@ const useEKYC = (userConfig = {}) => {
                 return;
             }
 
-            const remoteUrl =config.REMOTE_URL;;
+            const remoteUrl = config.REMOTE_URL;;
             const html = `
             <html><head><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
             <script>
              function relayFromIframe() {
-      const iframe = document.getElementById("responseFrame");
-      try {
-        const content = iframe.contentWindow.document.body.outerHTML;
-        window.ReactNativeWebView.postMessage(content);
+                 const iframe = document.getElementById("responseFrame");
+             try {
+             const content = iframe.contentWindow.document.body.outerHTML;
+             window.ReactNativeWebView.postMessage(content);
 
-      } catch (e) {
-        window.ReactNativeWebView.postMessage("ERROR: Unable to read iframe content");
-      }
-    }
+              } catch (e) {
+              window.ReactNativeWebView.postMessage("ERROR: Unable to read iframe content");
+             }
+             }
 
             </script>
             <body onload="document.forms[0].submit()">

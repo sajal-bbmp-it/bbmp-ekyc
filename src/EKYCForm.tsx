@@ -9,8 +9,9 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { WebView,WebViewMessageEvent } from 'react-native-webview';
-import { useNavigation,NavigationProp } from '@react-navigation/native';
+import { WebView, WebViewMessageEvent } from 'react-native-webview';
+import { useNavigation, NavigationProp, useRoute } from '@react-navigation/native';
+import type { EventEmitter } from '@react-navigation/core'; 
 import { RouteProp } from '@react-navigation/native';
 
 type AadhaarResult = {
@@ -26,21 +27,33 @@ type EKYCParams = {
   loader: boolean;
   remoteUrl: string;
   encDecValue: string;
+  ekycIndex?: number; 
 };
 type EKYCFormProps = {
   route: RouteProp<{ params: EKYCParams }, 'params'>;
 };
 
-const EKYCForm : React.FC<EKYCFormProps> = ({ route }) => {
+const EKYCForm: React.FC<EKYCFormProps> = ({ route }) => {
 
   const webViewRef = useRef<WebView>(null);
-  const navigation = useNavigation<NavigationProp<any>>();
+  // const navigation = useNavigation<NavigationProp<any>>();
+
+
+  type AnyNavigation = NavigationProp<any> & {
+    emit: (eventName: string, ...args: any[]) => void;
+    getParent: () => AnyNavigation | undefined;
+  };
+  
+  const navigation = useNavigation() as AnyNavigation;
+
+
+
   const { htmlContent, loader, remoteUrl, encDecValue } = route.params || {};
 
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [result, setResult] = useState<AadhaarResult | null>(null);
- 
+
 
 
   const injectedJavaScript = `
@@ -97,66 +110,79 @@ const EKYCForm : React.FC<EKYCFormProps> = ({ route }) => {
   true;
 `;
 
+ 
+  //new
+  const onMessage = (event: WebViewMessageEvent) => {
+    const rawData = event.nativeEvent.data;
+    console.log("Message from WebView (Raw):", rawData);
 
-
-const onMessage = (event: WebViewMessageEvent)  => {
-  const rawData = event.nativeEvent.data;
-  console.log("Message from WebView (Raw):", rawData);
-
-  try {
+    try {
       const parsedData = JSON.parse(rawData);
 
       if (parsedData.type === 'debug') {
-          console.log("DEBUG MESSAGE from WebView:", parsedData.content);
+        console.log("DEBUG MESSAGE from WebView:", parsedData.content);
       } else if (parsedData.type === 'error') {
-          console.error("WEBVIEW ERROR:", parsedData.message);
-          Alert.alert("WebView Error", parsedData.message);
-      } else if (parsedData.type === 'aadhaar_data_ready' && parsedData.content) { // Look for 'aadhaar_data_ready'
-          const dataString = parsedData.content; // This is the "ekycJsonStr|StatusData" string
+        console.error("WEBVIEW ERROR:", parsedData.message);
+        Alert.alert("WebView Error", parsedData.message);
+      } else if (parsedData.type === 'aadhaar_data_ready' && parsedData.content) {
+        const dataString = parsedData.content;
+        const responseParts = dataString.split('|');
 
-          const responseParts = dataString.split('|');
-          if (responseParts.length === 2) {
-              const ekycJsonStr = responseParts[0];
-              const statusJsonStr = responseParts[1];
+        if (responseParts.length === 2) {
+          const ekycJsonStr = responseParts[0];
+          const statusJsonStr = responseParts[1];
 
-              try {
-                  const ekycData = JSON.parse(ekycJsonStr);
-                  const statusData = JSON.parse(statusJsonStr);
+          try {
+            const ekycData = JSON.parse(ekycJsonStr);
+            const statusData = JSON.parse(statusJsonStr);
 
-                  const newResult = {
-                      verify: statusData.status === "Success",
-                      name: ekycData.eKYCData?.name || 'N/A',
-                      localName: ekycData.localKYCData?.name || 'N/A',
-                      aadhaarNo: ekycData.maskedAadhaar || 'N/A',
-                      txnNo: ekycData.txnNo || 'N/A',
-                      vaultRefNo: statusData.vaultrefno || 'N/A',
-                  };
+            const newResult = {
+              verify: statusData.status === "Success",
+              name: ekycData.eKYCData?.name || 'N/A',
+              localName: ekycData.localKYCData?.name || 'N/A',
+              aadhaarNo: ekycData.maskedAadhaar || 'N/A',
+              txnNo: ekycData.txnNo || 'N/A',
+              vaultRefNo: statusData.vaultrefno || 'N/A',
+            };
 
-                  setResult(newResult);
-                  setModalVisible(true);
-                  setLoading(false);
-                  console.log("Successfully parsed and set Aadhaar data:", newResult);
+            setResult(newResult);
+            setModalVisible(true);
+            setLoading(false);
+            console.log("✅ Successfully parsed Aadhaar data:", newResult);
 
-              } catch (jsonParseError) {
-                  console.error("RN WebView Error parsing eKYC or Status JSON:", jsonParseError);
-                  Alert.alert("Data Error", "Failed to parse Aadhaar EKYC or Status JSON from WebView.");
-              }
-          } else {
-              console.warn("RN WebView Unexpected Aadhaar response format:", dataString);
-              Alert.alert("Data Format Warning", "Received unexpected data format from Aadhaar page.");
+
+            // navigation.emit({
+            //   type: 'onEKYCComplete',
+            //   data: newResult,
+            //   index: route.params?.ekycIndex, // sent from project-level
+            // });
+            (navigation.getParent() as any)?.emit({
+              type: 'ekycComplete',
+              data: {
+                result: newResult,
+                index: route.params?.ekycIndex,
+              },
+            });
+
+          } catch (jsonParseError) {
+            console.error("❌ Error parsing eKYC JSON:", jsonParseError);
+            Alert.alert("Data Error", "Failed to parse Aadhaar EKYC JSON.");
           }
+        } else {
+          console.warn("Unexpected Aadhaar response format:", dataString);
+          Alert.alert("Data Format Warning", "Unexpected data format from Aadhaar page.");
+        }
       }
-      // ... handle other message types if any
-  } catch (e) {
-      console.error("RN WebView Error parsing raw WebView message (not JSON?):", e, "Raw data:", rawData);
-  }
-};
-  
+    } catch (e) {
+      console.error("❌ WebView message parsing failed:", e, "Raw data:", rawData);
+    }
+  };
+
 
   const closeModal = () => {
     setModalVisible(false);
-   navigation.goBack();
-    
+    navigation.goBack();
+
   };
 
   return (
@@ -175,7 +201,7 @@ const onMessage = (event: WebViewMessageEvent)  => {
           onLoadEnd={() => setLoading(false)}
           onMessage={onMessage}
           injectedJavaScript={injectedJavaScript}
-          javaScriptEnabled = {true}
+          javaScriptEnabled={true}
           domStorageEnabled
           mixedContentMode="always"
         />
@@ -300,3 +326,58 @@ const styles = StyleSheet.create({
 });
 
 export default EKYCForm;
+
+
+
+ // const onMessage = (event: WebViewMessageEvent)  => {
+  //   const rawData = event.nativeEvent.data;
+  //   console.log("Message from WebView (Raw):", rawData);
+
+  //   try {
+  //       const parsedData = JSON.parse(rawData);
+
+  //       if (parsedData.type === 'debug') {
+  //           console.log("DEBUG MESSAGE from WebView:", parsedData.content);
+  //       } else if (parsedData.type === 'error') {
+  //           console.error("WEBVIEW ERROR:", parsedData.message);
+  //           Alert.alert("WebView Error", parsedData.message);
+  //       } else if (parsedData.type === 'aadhaar_data_ready' && parsedData.content) { // Look for 'aadhaar_data_ready'
+  //           const dataString = parsedData.content; // This is the "ekycJsonStr|StatusData" string
+
+  //           const responseParts = dataString.split('|');
+  //           if (responseParts.length === 2) {
+  //               const ekycJsonStr = responseParts[0];
+  //               const statusJsonStr = responseParts[1];
+
+  //               try {
+  //                   const ekycData = JSON.parse(ekycJsonStr);
+  //                   const statusData = JSON.parse(statusJsonStr);
+
+  //                   const newResult = {
+  //                       verify: statusData.status === "Success",
+  //                       name: ekycData.eKYCData?.name || 'N/A',
+  //                       localName: ekycData.localKYCData?.name || 'N/A',
+  //                       aadhaarNo: ekycData.maskedAadhaar || 'N/A',
+  //                       txnNo: ekycData.txnNo || 'N/A',
+  //                       vaultRefNo: statusData.vaultrefno || 'N/A',
+  //                   };
+
+  //                   setResult(newResult);
+  //                   setModalVisible(true);
+  //                   setLoading(false);
+  //                   console.log("Successfully parsed and set Aadhaar data:", newResult);
+
+  //               } catch (jsonParseError) {
+  //                   console.error("RN WebView Error parsing eKYC or Status JSON:", jsonParseError);
+  //                   Alert.alert("Data Error", "Failed to parse Aadhaar EKYC or Status JSON from WebView.");
+  //               }
+  //           } else {
+  //               console.warn("RN WebView Unexpected Aadhaar response format:", dataString);
+  //               Alert.alert("Data Format Warning", "Received unexpected data format from Aadhaar page.");
+  //           }
+  //       }
+  //       // ... handle other message types if any
+  //   } catch (e) {
+  //       console.error("RN WebView Error parsing raw WebView message (not JSON?):", e, "Raw data:", rawData);
+  //   }
+  // };

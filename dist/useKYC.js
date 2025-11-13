@@ -110,15 +110,15 @@ const useEKYC = (userConfig = {}) => {
             <html><head><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
             <script>
              function relayFromIframe() {
-      const iframe = document.getElementById("responseFrame");
-      try {
-        const content = iframe.contentWindow.document.body.outerHTML;
-        window.ReactNativeWebView.postMessage(content);
+                 const iframe = document.getElementById("responseFrame");
+             try {
+             const content = iframe.contentWindow.document.body.outerHTML;
+             window.ReactNativeWebView.postMessage(content);
 
-      } catch (e) {
-        window.ReactNativeWebView.postMessage("ERROR: Unable to read iframe content");
-      }
-    }
+              } catch (e) {
+              window.ReactNativeWebView.postMessage("ERROR: Unable to read iframe content");
+             }
+             }
 
             </script>
             <body onload="document.forms[0].submit()">
